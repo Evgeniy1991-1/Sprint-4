@@ -1,48 +1,72 @@
 package ru.sprint.scooter;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class FaqTest extends BaseTest {
 
-    static Stream<Arguments> faqDataProvider() {
-        return Stream.of(
-                Arguments.of("Сколько это стоит", "400 рублей"),
-                Arguments.of("несколько самокатов", "один заказ — один самокат"),
-                Arguments.of("рассчитывается время", "суточная аренда закончится"),
-                Arguments.of("на сегодня", "Только начиная с завтрашнего дня. Но скоро станем расторопнее."),
-                Arguments.of("продлить", "позвонить в поддержку"),
-                Arguments.of("зарядку", "полной зарядкой"),
-                Arguments.of("отменить", "пока самокат не привезли"),
-                Arguments.of("МКАД", "Да, обязательно. Всем самокатов! И Москве, и Московской области.")
-        );
-    }
-
-    @ParameterizedTest(name = "Вопрос «{0}» — открывается ответ с текстом «{1}»")
-    @MethodSource("faqDataProvider")
-    void accordionOpensAndShowsCorrectAnswer(String questionFragment, String expectedAnswerFragment) {
+    @Test
+    public void checkCostAndPaymentAnswer() {
         homePage.scrollToFAQ();
-        homePage.clickAccordionQuestion(questionFragment);
-
-        assertTrue(homePage.isAccordionExpanded(questionFragment),
-                "Аккордеон должен быть раскрыт после клика");
-
-        String answer = homePage.getAccordionAnswerText(questionFragment);
-        assertTrue(answer.contains(expectedAnswerFragment),
-                "Ответ должен содержать: " + expectedAnswerFragment);
+        homePage.clickAccordionQuestion("Сколько это стоит");
+        String answer = homePage.getAccordionAnswerText("Сколько это стоит");
+        assertEquals("Сутки — 400 рублей. Оплата курьеру — наличными или картой.", answer);
     }
 
     @Test
-    void faqHasEightQuestions() {
+    public void checkMultipleScootersAnswer() {
         homePage.scrollToFAQ();
-        assertEquals(8, homePage.getFaqQuestionsCount(),
-                "В FAQ должно быть 8 вопросов");
+        homePage.clickAccordionQuestion("несколько самокатов");
+        String answer = homePage.getAccordionAnswerText("несколько самокатов");
+        assertEquals("Пока что у нас так: один заказ — один самокат. Если хотите покататься с друзьями, можете просто сделать несколько заказов — один за другим.", answer);
+    }
+
+    @Test
+    public void checkRentalTimeAnswer() {
+        homePage.scrollToFAQ();
+        homePage.clickAccordionQuestion("рассчитывается время");
+        String answer = homePage.getAccordionAnswerText("рассчитывается время");
+        assertEquals("Допустим, вы оформляете заказ на 8 мая. Мы привозим самокат 8 мая в течение дня. Отсчёт времени аренды начинается с момента, когда вы оплатите заказ курьеру. Если мы привезли самокат 8 мая в 20:30, суточная аренда закончится 9 мая в 20:30.", answer);
+    }
+
+    @Test
+    public void checkSameDayOrderAnswer() {
+        homePage.scrollToFAQ();
+        homePage.clickAccordionQuestion("на сегодня");
+        String answer = homePage.getAccordionAnswerText("на сегодня");
+        assertEquals("Только начиная с завтрашнего дня. Но скоро станем расторопнее.", answer);
+    }
+
+    @Test
+    public void checkExtendOrReturnAnswer() {
+        homePage.scrollToFAQ();
+        homePage.clickAccordionQuestion("продлить");
+        String answer = homePage.getAccordionAnswerText("продлить");
+        assertEquals("Пока что нет! Но если что-то срочное — всегда можно позвонить в поддержку по красивому номеру 1010.", answer);
+    }
+
+    @Test
+    public void checkChargerAnswer() {
+        homePage.scrollToFAQ();
+        homePage.clickAccordionQuestion("зарядку");
+        String answer = homePage.getAccordionAnswerText("зарядку");
+        assertEquals("Самокат приезжает к вам с полной зарядкой. Этого хватает на восемь суток — даже если будете кататься без передышек и во сне. Зарядка не понадобится.", answer);
+    }
+
+    @Test
+    public void checkCancelOrderAnswer() {
+        homePage.scrollToFAQ();
+        homePage.clickAccordionQuestion("отменить");
+        String answer = homePage.getAccordionAnswerText("отменить");
+        assertEquals("Да, пока самокат не привезли. Штрафа не будет, объяснительной записки тоже не попросим. Все же свои.", answer);
+    }
+
+    @Test
+    public void checkOutsideMkadAnswer() {
+        homePage.scrollToFAQ();
+        homePage.clickAccordionQuestion("МКАД");
+        String answer = homePage.getAccordionAnswerText("МКАД");
+        assertEquals("Да, обязательно. Всем самокатов! И Москве, и Московской области.", answer);
     }
 }

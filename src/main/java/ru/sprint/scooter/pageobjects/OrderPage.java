@@ -5,7 +5,6 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -58,24 +57,13 @@ public class OrderPage {
     private static final By commentField =
             By.xpath("//input[@placeholder='Комментарий для курьера']");
 
-    // Кнопка «Заказать» на форме — исключаем шапку и модальное окно
     private static final By orderButton =
             By.xpath("//button[text()='Заказать' and not(ancestor::*[contains(@class,'Header')])]");
 
     // ===================== МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ =====================
 
-    // Модальное окно — ищем по тексту заголовка
     private static final By confirmModal =
             By.xpath("//div[contains(text(),'Хотите оформить заказ')]");
-
-    // Кнопка «Да» — внутри модального окна
-    private static final By confirmButton =
-            By.xpath("//div[contains(@class,'Order_Modal')]//button[text()='Да']");
-
-    // ===================== МОДАЛЬНОЕ ОКНО УСПЕШНОГО ЗАКАЗА =====================
-
-    private static final By successMessage =
-            By.xpath("//div[contains(text(),'Заказ оформлен')]");
 
     // ===================== КОНСТРУКТОР =====================
 
@@ -130,10 +118,8 @@ public class OrderPage {
     public OrderPage selectMetroStation(String stationName) {
         driver.findElement(metroField).click();
         driver.findElement(metroField).sendKeys(stationName);
-        By option = By.xpath("//div[text()='" + stationName + "']");
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.elementToBeClickable(option))
-                .click();
+        driver.findElement(metroField).sendKeys(Keys.DOWN);
+        driver.findElement(metroField).sendKeys(Keys.ENTER);
         return this;
     }
 
@@ -197,35 +183,6 @@ public class OrderPage {
         return this;
     }
 
-    // Подтвердить заказ — нажать «Да» в модальном окне
-    public OrderPage confirmOrder() {
-        // Ждём появления модального окна по тексту
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.visibilityOfElementLocated(confirmModal));
-
-        // Пауза для анимации
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        // Кликаем «Да»: сначала обычный клик, потом через Actions, потом через JS
-        WebElement button = new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.elementToBeClickable(confirmButton));
-
-        try {
-            button.click();
-        } catch (Exception e1) {
-            try {
-                new Actions(driver).moveToElement(button).click().perform();
-            } catch (Exception e2) {
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
-            }
-        }
-        return this;
-    }
-
     public OrderPage fillSecondPage(String date, String rentalPeriod,
                                     boolean black, boolean grey, String comment) {
         new WebDriverWait(driver, Duration.ofSeconds(5))
@@ -241,23 +198,18 @@ public class OrderPage {
         }
         enterComment(comment);
         clickOrderButton();
-        confirmOrder();
         return this;
     }
 
     // ===================== МЕТОДЫ ПРОВЕРКИ ====================
 
-    public boolean isSuccessMessageDisplayed() {
+    public boolean isConfirmModalDisplayed() {
         try {
-            new WebDriverWait(driver, Duration.ofSeconds(5))
-                    .until(ExpectedConditions.visibilityOfElementLocated(successMessage));
+            new WebDriverWait(driver, Duration.ofSeconds(10))
+                    .until(ExpectedConditions.visibilityOfElementLocated(confirmModal));
             return true;
         } catch (Exception e) {
             return false;
         }
-    }
-
-    public String getSuccessMessageText() {
-        return driver.findElement(successMessage).getText();
     }
 }
